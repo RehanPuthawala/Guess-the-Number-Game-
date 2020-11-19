@@ -19,51 +19,55 @@ const guessInput = document.querySelector('.guess');
 let level = 1;
 let limit = 20;
 let score = 20;
+let gameState;
 let highscore = 0;
 let secretNumber;
 
 // * Functions * //
 
 const init = () => {
-  scoreLabel.textContent = score;
+  gameState = true;
   secretNumber = Math.floor(Math.random() * limit) + 1;
   secretNumberLabel.textContent = '?';
-  checkButton.style.opacity = '1';
-  checkButton.style.pointerEvents = 'all';
-  guessInput.style.pointerEvents = 'all';
+  scoreLabel.textContent = score;
+  disableOrEnable('enable');
   guessInput.focus();
   levelLabel.textContent = level;
-
-  messageLabel.textContent = 'Start Guessing . . . ';
+  displayMessage('Start Guessing . . . ');
 
   document.body.style.backgroundColor = '#222';
   secretNumberLabel.style.width = '15rem';
+};
 
-  guessInput.addEventListener('keypress', e => {
-    if (e.key === 'Enter') {
-      if (score > 1) {
-        const userGuess = Number(guessInput.value);
-        checkUserGuess(userGuess);
-      }
-    }
-  });
+const displayMessage = message => (messageLabel.textContent = message);
+const disableOrEnable = (state = 'enable') => {
+  if (state === 'disable') {
+    checkButton.style.opacity = '0.5';
+    checkButton.style.pointerEvents = 'none';
+    guessInput.style.pointerEvents = 'none';
+  }
+
+  checkButton.style.opacity = '1';
+  checkButton.style.pointerEvents = 'all';
+  guessInput.style.pointerEvents = 'all';
 };
 
 const checkUserGuess = userGuess => {
   if (!userGuess) {
-    messageLabel.textContent = `❌ Please Enter Number Between 1 and ${limit}`;
+    displayMessage(`❌ No Number !!!`);
   } else if (userGuess === secretNumber) {
-    messageLabel.textContent = `🎉 Correct Number`;
+    displayMessage(`🎉 Correct Number`);
+    gameState = false;
     document.body.style.backgroundColor = '#60b347';
     secretNumberLabel.style.width = '30rem';
     secretNumberLabel.textContent = secretNumber;
     disableInput();
   } else if (userGuess < secretNumber) {
-    messageLabel.textContent = '😥 Too Low !';
+    displayMessage('😥 Too Low !');
     score--;
     scoreLabel.textContent = score;
   } else if (userGuess > secretNumber) {
-    messageLabel.textContent = '🤯 Too High !';
+    displayMessage('🤯 Too High !');
     score--;
     scoreLabel.textContent = score;
   }
@@ -72,29 +76,21 @@ const checkUserGuess = userGuess => {
 };
 
 const disableInput = () => {
-  checkButton.style.opacity = '0.5';
-  checkButton.style.pointerEvents = 'none';
-  guessInput.style.pointerEvents = 'none';
-  guessInput.removeEventListener('keypress', e => {
-    if (e.key === 'Enter') {
-      if (score > 1) {
-        const userGuess = Number(guessInput.value);
-        checkUserGuess(userGuess);
-      }
-    }
-  });
+  disableOrEnable('disable');
 };
 
 const restart = () => {
-  if (score > highscore) {
-    highscore = score;
+  if (!gameState) {
+    if (score > highscore) {
+      highscore = score;
+    }
+    highScoreLabel.textContent = highscore;
+    limit += 5;
+    limitLabel.textContent = limit;
+    score = limit;
+    level++;
+    init();
   }
-  highScoreLabel.textContent = highscore;
-  limit += 5;
-  limitLabel.textContent = limit;
-  score = limit;
-  level++;
-  init();
 };
 
 // * Event Listeners * //
@@ -103,6 +99,15 @@ checkButton.addEventListener('click', () => {
   if (score > 1) {
     const userGuess = Number(guessInput.value);
     checkUserGuess(userGuess);
+  }
+});
+
+guessInput.addEventListener('keypress', e => {
+  if (e.key === 'Enter') {
+    if (score > 1) {
+      const userGuess = Number(guessInput.value);
+      checkUserGuess(userGuess);
+    }
   }
 });
 
